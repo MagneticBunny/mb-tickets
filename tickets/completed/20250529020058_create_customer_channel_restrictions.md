@@ -121,7 +121,7 @@ Los clientes empresariales necesitan diferentes configuraciones según el canal 
 - [ ] En testing
 - [ ] En revisión
 - [ ] En staging
-- [ ] Completado
+- [x] Completado
 - [ ] Cancelado
 
 ## Log de Cambios
