@@ -329,7 +329,6 @@ cat > "$OUTPUT_FILE" << 'EOF'
         
         <div class="footer">
             <p>🎯 Sistema de Tickets MB - "Documentation as Code"</p>
-            <button class="refresh-btn" onclick="location.reload()">🔄 Actualizar Dashboard</button>
         </div>
     </div>
 </body>
