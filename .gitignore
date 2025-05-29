@@ -1,0 +1,57 @@
+# Sistema de Tickets MB - .gitignore
+
+# Archivos temporales del sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos de editor
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.idea/
+
+# Archivos de backup
+*.bak
+*.backup
+*.tmp
+
+# Logs
+*.log
+logs/
+
+# Archivos de configuración local
+config.local.*
+.env.local
+
+# Archivos de métricas temporales
+metrics/temp/
+reports/temp/
+
+# Archivos de trabajo temporal
+draft_tickets/
+temp_tickets/
+*.draft.md
+
+# Archivos temporales del sistema de tickets
+*.bak
+.metrics-section.md
+
+# Dashboards generados (opcional: comentar si quieres versionarlos)
+# dashboard.html
+
+# Reportes temporales
+*-report.html
+reporte-*.html
+
+# Logs
+*.log
+
+# Archivos temporales de scripts
+temp_*.md
+.temp/ 

@@ -1,0 +1,138 @@
+name: 📊 Update Tickets Dashboard
+
+on:
+  push:
+    paths: 
+      - 'tickets/**'
+      - 'scripts/**'
+  schedule:
+    # Ejecutar cada día a las 8:00 AM UTC (hora de oficina)
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+    # Permitir ejecución manual desde GitHub
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔄 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: 📊 Generate Dashboard
+      run: |
+        # Hacer ejecutables los scripts
+        chmod +x scripts/*.sh
+        
+        # Generar dashboard actualizado
+        ./scripts/generate-dashboard.sh
+        
+        # Generar métricas para README
+        ./scripts/generate-readme-metrics.sh
+      
+    - name: 📈 Generate Metrics Summary
+      run: |
+        # Obtener métricas básicas
+        ACTIVE_COUNT=$(find tickets/active -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+        COMPLETED_COUNT=$(find tickets/completed -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+        CANCELLED_COUNT=$(find tickets/cancelled -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+        TOTAL_COUNT=$((ACTIVE_COUNT + COMPLETED_COUNT + CANCELLED_COUNT))
+        
+        # Crear badge dinámico
+        echo "ACTIVE_TICKETS=$ACTIVE_COUNT" >> $GITHUB_ENV
+        echo "TOTAL_TICKETS=$TOTAL_COUNT" >> $GITHUB_ENV
+        
+        # Log para debugging
+        echo "📊 Métricas actuales:"
+        echo "   - Activos: $ACTIVE_COUNT"
+        echo "   - Completados: $COMPLETED_COUNT" 
+        echo "   - Cancelados: $CANCELLED_COUNT"
+        echo "   - Total: $TOTAL_COUNT"
+    
+    - name: 🏷️ Update Repository Description
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            description: `🎫 Sistema de Tickets MB | ${process.env.ACTIVE_TICKETS} activos de ${process.env.TOTAL_TICKETS} total | Actualizado: ${new Date().toISOString().split('T')[0]}`
+          });
+    
+    - name: 📝 Commit Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Agregar archivos generados
+        git add dashboard.html
+        git add README.md
+        
+        # Commit solo si hay cambios
+        if git diff --staged --quiet; then
+          echo "No hay cambios para commitear"
+        else
+          git commit -m "📊 Auto-update dashboard and metrics
+          
+          - Dashboard regenerado con métricas actuales
+          - README actualizado con estado de tickets
+          - Activos: ${{ env.ACTIVE_TICKETS }} | Total: ${{ env.TOTAL_TICKETS }}
+          - Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          
+          git push
+        fi
+
+  deploy-to-pages:
+    needs: update-dashboard
+    runs-on: ubuntu-latest
+    
+    # Solo ejecutar si estamos en la rama main/master
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: 🔄 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🛠️ Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: 📊 Prepare Dashboard for Pages
+      run: |
+        mkdir -p public
+        cp dashboard.html public/index.html
+        cp README.md public/readme.html
+        
+        # Crear página índice simple
+        cat > public/dashboard.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>MB Tickets Dashboard</title>
+            <meta http-equiv="refresh" content="0; url=index.html">
+        </head>
+        <body>
+            <p><a href="index.html">Dashboard de Tickets MB</a></p>
+        </body>
+        </html>
+        EOF
+    
+    - name: 📤 Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: public/
+    
+    - name: 🚀 Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4 
