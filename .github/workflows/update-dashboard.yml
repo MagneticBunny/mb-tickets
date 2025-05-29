@@ -59,15 +59,15 @@ jobs:
         echo "   - Cancelados: $CANCELLED_COUNT"
         echo "   - Total: $TOTAL_COUNT"
     
-    - name: 🏷️ Update Repository Description
-      uses: actions/github-script@v7
-      with:
-        script: |
-          await github.rest.repos.update({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            description: `🎫 Sistema de Tickets MB | ${process.env.ACTIVE_TICKETS} activos de ${process.env.TOTAL_TICKETS} total | Actualizado: ${new Date().toISOString().split('T')[0]}`
-          });
+    # - name: 🏷️ Update Repository Description
+    #   uses: actions/github-script@v7
+    #   with:
+    #     script: |
+    #       await github.rest.repos.update({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         description: `🎫 Sistema de Tickets MB | ${process.env.ACTIVE_TICKETS} activos de ${process.env.TOTAL_TICKETS} total | Actualizado: ${new Date().toISOString().split('T')[0]}`
+    #       });
     
     - name: 📝 Commit Changes
       run: |
