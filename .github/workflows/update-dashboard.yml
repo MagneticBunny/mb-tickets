@@ -15,6 +15,12 @@ jobs:
   update-dashboard:
     runs-on: ubuntu-latest
     
+    # ✨ Permisos necesarios para commits automáticos y actualización del repositorio
+    permissions:
+      contents: write        # Para poder hacer commits y push
+      pull-requests: write   # Para actualizar PRs si es necesario
+      repository-projects: read  # Para leer información del repositorio
+    
     steps:
     - name: 🔄 Checkout Repository
       uses: actions/checkout@v4
