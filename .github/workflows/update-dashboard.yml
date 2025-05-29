@@ -5,6 +5,7 @@ on:
     paths: 
       - 'tickets/**'
       - 'scripts/**'
+      - '.github/workflows/**'  # Para ejecutar cuando se modifiquen los workflows
   schedule:
     # Ejecutar cada día a las 8:00 AM UTC (hora de oficina)
     - cron: '0 8 * * 1-5'
