@@ -2,54 +2,18 @@
 
 > **Sistema de gestión de tickets para el desarrollo de nuevos features en el ecosistema de microservicios MB**
 
-## 📊 Estado Actual del Sistema
+## 📊 Dashboard en Vivo
 
-> **Última actualización**: 2025-05-29 a las 03:30 UTC  
-> **Dashboard completo**: [Ver métricas detalladas](dashboard.html)
+🎯 **[Ver Dashboard Completo →](https://magneticbunny.github.io/mb-tickets)**
 
-### 🎯 Métricas Principales
-
-<div align="center">
-
-| 📈 Métrica | 🔢 Valor | 📊 Estado |
-|------------|----------|-----------|
-| **Tickets Activos** | **2** | 🟢 Bajo |
-| **Tickets Completados** | 0 | 🔵 Total |
-| **Tickets Cancelados** | 0 | 🔴 Total |
-| **Tasa de Finalización** | 0% | 🟡 Mejorable |
-
-</div>
-
-### ⚡ Distribución por Prioridad (Activos)
-
-```
-🔴 Alta:    1 tickets
-🟡 Media:   0 tickets  
-🟢 Baja:    0 tickets
-```
-
-### 🔧 Servicio con Mayor Carga
-**mb-business** con 1 tickets activos
-
-### 🚀 Acciones Rápidas
-
-```bash
-# Ver todos los tickets activos
-./scripts/find-tickets.sh --estado active --stats
-
-# Dashboard actualizado
-./scripts/update-and-open-dashboard.sh
-
-# Crear nuevo ticket
-./scripts/create-ticket.sh nombre_del_feature [servicio]
-```
+> Dashboard web con métricas en tiempo real, estadísticas, gráficos y estado actual de todos los tickets. Se actualiza automáticamente con cada cambio.
 
 ---
 
 ## 🏢 **Para Project Managers y Stakeholders**
 
 ### 📈 **Visibilidad en Tiempo Real**
-- **Dashboard Web**: [https://tu-org.github.io/mb-tickets](dashboard.html) (se actualiza automáticamente)
+- **Dashboard Web**: [https://magneticbunny.github.io/mb-tickets](https://magneticbunny.github.io/mb-tickets) (se actualiza automáticamente)
 - **GitHub Repository**: Descripción del repo muestra métricas en vivo
 - **Métricas Automatizadas**: Se actualizan cada commit y diariamente
 
@@ -298,7 +262,7 @@ release_version: ""
 
 ## 🔗 Enlaces Útiles
 
-- [📊 Dashboard Web](dashboard.html) - Métricas en tiempo real
+- [📊 Dashboard Web](https://magneticbunny.github.io/mb-tickets) - Métricas en tiempo real
 - [📖 Directrices Completas](docs/guidelines.md) - Principios del sistema
 - [🌟 Mejores Prácticas](docs/best-practices.md) - Guías por servicio
 - [📑 Índice de Tickets](TICKET_INDEX.md) - Navegación detallada
@@ -308,9 +272,9 @@ release_version: ""
 ## 💡 **Quick Start**
 
 ### Para PMs/Stakeholders:
-1. **Ver estado actual**: Métricas en la parte superior de este README
-2. **Dashboard completo**: [Clic aquí](dashboard.html)
-3. **Acceso web**: GitHub Pages URL (configurar en Settings > Pages)
+1. **Dashboard completo**: [Ver Dashboard Web →](https://magneticbunny.github.io/mb-tickets)
+2. **Métricas en tiempo real**: Actualizado automáticamente cada día
+3. **Estado actual**: Todas las métricas y gráficos disponibles en el dashboard
 
 ### Para Desarrolladores:
 1. **Crear ticket**: `./scripts/create-ticket.sh nuevo_feature mb-business`

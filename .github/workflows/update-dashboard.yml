@@ -36,9 +36,6 @@ jobs:
         
         # Generar dashboard actualizado
         ./scripts/generate-dashboard.sh
-        
-        # Generar métricas para README
-        ./scripts/generate-readme-metrics.sh
       
     - name: 📈 Generate Metrics Summary
       run: |
@@ -76,7 +73,6 @@ jobs:
         
         # Agregar archivos generados
         git add dashboard.html
-        git add README.md
         
         # Commit solo si hay cambios
         if git diff --staged --quiet; then
@@ -85,7 +81,6 @@ jobs:
           git commit -m "📊 Auto-update dashboard and metrics
           
           - Dashboard regenerado con métricas actuales
-          - README actualizado con estado de tickets
           - Activos: ${{ env.ACTIVE_TICKETS }} | Total: ${{ env.TOTAL_TICKETS }}
           - Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
           
@@ -119,7 +114,6 @@ jobs:
       run: |
         mkdir -p public
         cp dashboard.html public/index.html
-        cp README.md public/readme.html
         
         # Crear página índice simple
         cat > public/dashboard.html << 'EOF'
