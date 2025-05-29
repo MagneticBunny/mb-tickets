@@ -86,6 +86,13 @@ jobs:
           
           git push
         fi
+    
+    - name: 📤 Upload Dashboard Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dashboard
+        path: dashboard.html
+        retention-days: 1
 
   deploy-to-pages:
     needs: update-dashboard
@@ -106,6 +113,15 @@ jobs:
     steps:
     - name: 🔄 Checkout
       uses: actions/checkout@v4
+      with:
+        ref: main  # Asegurar que tome la rama main más reciente
+        fetch-depth: 0
+      
+    - name: 📥 Download Dashboard Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: dashboard
+        path: ./
       
     - name: 🛠️ Setup Pages
       uses: actions/configure-pages@v4
