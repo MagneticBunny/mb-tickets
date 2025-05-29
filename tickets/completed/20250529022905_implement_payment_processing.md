@@ -92,7 +92,7 @@ external_apis: []
 - [ ] En testing
 - [ ] En revisión
 - [ ] En staging
-- [ ] Completado
+- [x] Completado
 - [ ] Cancelado
 
 ## Log de Cambios
