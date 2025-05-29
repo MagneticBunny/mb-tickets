@@ -1,7 +1,7 @@
 ---
 id: "20250529022905"
 service: "mb-commerce-channels"
-priority: "[Alta/Media/Baja]"
+priority: "Media"
 estimation: "[XS/S/M/L/XL]"
 assignee: "[desarrollador responsable]"
 created: "2025-05-29"

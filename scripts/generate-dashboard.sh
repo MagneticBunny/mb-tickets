@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script para generar dashboard HTML con métricas básicas
+# Script para generar dashboard HTML con métricas y acordeón de tickets
 # Uso: ./generate-dashboard.sh [archivo_salida]
 
 set -e
@@ -23,6 +23,70 @@ extract_yaml_value() {
     local key="$2"
     local value=$(grep "^$key:" "$file" | sed 's/^[^:]*: *//' | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
     echo "$value"
+}
+
+# Función para extraer título del ticket
+extract_title() {
+    local file="$1"
+    # Buscar el primer título H1 o H2 después del frontmatter
+    local title=$(awk '/^---$/{flag++} flag==2 && /^#/ {gsub(/^#+\s*/, ""); print; exit}' "$file")
+    if [ -z "$title" ]; then
+        # Si no hay título, usar el nombre del archivo sin extensión
+        title=$(basename "$file" .md | sed 's/^[0-9]*_//' | tr '_' ' ')
+    fi
+    echo "$title"
+}
+
+# Función para generar HTML de tickets por estado
+generate_tickets_html() {
+    local estado="$1"
+    local directorio="$2"
+    local html=""
+    
+    if [ -d "$directorio" ]; then
+        for file in "$directorio"/*.md; do
+            if [ -f "$file" ]; then
+                local id=$(extract_yaml_value "$file" "id")
+                local service=$(extract_yaml_value "$file" "service")
+                local priority=$(extract_yaml_value "$file" "priority")
+                local assignee=$(extract_yaml_value "$file" "assignee")
+                local created=$(extract_yaml_value "$file" "created")
+                local estimation=$(extract_yaml_value "$file" "estimation")
+                local title=$(extract_title "$file")
+                local filename=$(basename "$file")
+                
+                # Determinar icono de prioridad
+                local priority_icon="🟡"
+                case "$priority" in
+                    "Alta") priority_icon="🔴" ;;
+                    "Media") priority_icon="🟡" ;;
+                    "Baja") priority_icon="🟢" ;;
+                esac
+                
+                html="$html
+                <div class=\"ticket-item\">
+                    <div class=\"ticket-header\">
+                        <div class=\"ticket-title\">
+                            <span class=\"ticket-id\">#$id</span>
+                            <span class=\"ticket-name\">$title</span>
+                        </div>
+                        <div class=\"ticket-priority\">$priority_icon $priority</div>
+                    </div>
+                    <div class=\"ticket-details\">
+                        <div class=\"ticket-meta\">
+                            <span class=\"meta-item\"><strong>Servicio:</strong> $service</span>
+                            <span class=\"meta-item\"><strong>Asignado:</strong> $assignee</span>
+                            <span class=\"meta-item\"><strong>Creado:</strong> $created</span>
+                            <span class=\"meta-item\"><strong>Estimación:</strong> $estimation</span>
+                        </div>
+                        <div class=\"ticket-file\">📄 $filename</div>
+                    </div>
+                </div>"
+            fi
+        done
+    fi
+    
+    echo "$html"
 }
 
 # Función para contar tickets por criterio
@@ -64,6 +128,11 @@ MB_CLOUD=$(count_by_yaml_field "service" "mb-cloud-automation")
 MB_DB=$(count_by_yaml_field "service" "mb-db")
 MB_AGENTS=$(count_by_yaml_field "service" "mb-agents")
 TEST_SERVICE=$(count_by_yaml_field "service" "test-service")
+
+# Generar HTML de tickets por estado
+ACTIVE_TICKETS_HTML=$(generate_tickets_html "Activos" "tickets/active")
+COMPLETED_TICKETS_HTML=$(generate_tickets_html "Completados" "tickets/completed")
+CANCELLED_TICKETS_HTML=$(generate_tickets_html "Cancelados" "tickets/cancelled")
 
 # Generar HTML
 cat > "$OUTPUT_FILE" << 'EOF'
@@ -197,18 +266,145 @@ cat > "$OUTPUT_FILE" << 'EOF'
             color: #495057;
         }
         
-        .progress-bar {
-            width: 100px;
-            height: 6px;
-            background: #dee2e6;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-left: 10px;
+        /* Estilos del Acordeón */
+        .tickets-section {
+            padding: 30px;
+            border-top: 1px solid #ecf0f1;
         }
         
-        .progress-fill {
-            height: 100%;
-            transition: width 0.3s ease;
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .accordion {
+            margin-bottom: 15px;
+        }
+        
+        .accordion-header {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .accordion-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .accordion-header.active {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .accordion-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-header.active .accordion-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            background: #f8f9fa;
+            border-radius: 0 0 10px 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .accordion-content.active {
+            max-height: 2000px;
+        }
+        
+        .accordion-body {
+            padding: 20px;
+        }
+        
+        .ticket-item {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .ticket-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .ticket-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ticket-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ticket-id {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .ticket-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .ticket-priority {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            font-size: 0.9em;
+        }
+        
+        .ticket-details {
+            padding: 15px 20px;
+        }
+        
+        .ticket-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .meta-item {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .ticket-file {
+            color: #007bff;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
         }
         
         .footer {
@@ -219,28 +415,19 @@ cat > "$OUTPUT_FILE" << 'EOF'
             border-top: 1px solid #dee2e6;
         }
         
-        .refresh-btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-top: 10px;
-            transition: background 0.3s ease;
-        }
-        
-        .refresh-btn:hover {
-            background: #0056b3;
-        }
-        
         @media (max-width: 768px) {
             .chart-grid {
                 grid-template-columns: 1fr;
             }
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            .ticket-meta {
+                grid-template-columns: 1fr;
+            }
+            .accordion-header {
+                font-size: 1em;
+                padding: 15px;
             }
         }
     </style>
@@ -327,10 +514,72 @@ cat > "$OUTPUT_FILE" << 'EOF'
             </div>
         </div>
         
+        <div class="tickets-section">
+            <h2 class="section-title">🎫 Listado de Tickets por Estado</h2>
+            
+            <!-- Tickets Activos -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion('active')">
+                    <span>🟢 Tickets Activos (ACTIVE_COUNT_PLACEHOLDER)</span>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div id="active" class="accordion-content">
+                    <div class="accordion-body">
+                        ACTIVE_TICKETS_HTML_PLACEHOLDER
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tickets Completados -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion('completed')">
+                    <span>✅ Tickets Completados (COMPLETED_COUNT_PLACEHOLDER)</span>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div id="completed" class="accordion-content">
+                    <div class="accordion-body">
+                        COMPLETED_TICKETS_HTML_PLACEHOLDER
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tickets Cancelados -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion('cancelled')">
+                    <span>❌ Tickets Cancelados (CANCELLED_COUNT_PLACEHOLDER)</span>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div id="cancelled" class="accordion-content">
+                    <div class="accordion-body">
+                        CANCELLED_TICKETS_HTML_PLACEHOLDER
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="footer">
             <p>🎯 Sistema de Tickets MB - "Documentation as Code"</p>
         </div>
     </div>
+    
+    <script>
+        function toggleAccordion(sectionId) {
+            const content = document.getElementById(sectionId);
+            const header = content.previousElementSibling;
+            
+            // Toggle active class
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+        
+        // Auto-abrir la sección de tickets activos si hay contenido
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeCount = ACTIVE_COUNT_PLACEHOLDER;
+            if (activeCount > 0) {
+                toggleAccordion('active');
+            }
+        });
+    </script>
 </body>
 </html>
 EOF
@@ -352,8 +601,34 @@ sed -i.bak "s/MB_DB_PLACEHOLDER/$MB_DB/g" "$OUTPUT_FILE"
 sed -i.bak "s/MB_AGENTS_PLACEHOLDER/$MB_AGENTS/g" "$OUTPUT_FILE"
 sed -i.bak "s/TEST_SERVICE_PLACEHOLDER/$TEST_SERVICE/g" "$OUTPUT_FILE"
 
-# Limpiar archivo temporal
+# Limpiar archivo temporal sed
 rm -f "$OUTPUT_FILE.bak"
+
+# Reemplazar placeholders de HTML directamente
+# Si no hay tickets, mostrar mensaje vacío
+if [ -z "$ACTIVE_TICKETS_HTML" ]; then
+    ACTIVE_TICKETS_HTML='<div class="empty-state">📭 No hay tickets activos</div>'
+fi
+
+if [ -z "$COMPLETED_TICKETS_HTML" ]; then
+    COMPLETED_TICKETS_HTML='<div class="empty-state">📭 No hay tickets completados</div>'
+fi
+
+if [ -z "$CANCELLED_TICKETS_HTML" ]; then
+    CANCELLED_TICKETS_HTML='<div class="empty-state">📭 No hay tickets cancelados</div>'
+fi
+
+# Exportar variables para Perl
+export ACTIVE_TICKETS_HTML
+export COMPLETED_TICKETS_HTML  
+export CANCELLED_TICKETS_HTML
+
+# Usar perl para reemplazar contenido multilínea de forma segura
+perl -i -pe "
+s/ACTIVE_TICKETS_HTML_PLACEHOLDER/\$ENV{ACTIVE_TICKETS_HTML}/g;
+s/COMPLETED_TICKETS_HTML_PLACEHOLDER/\$ENV{COMPLETED_TICKETS_HTML}/g;
+s/CANCELLED_TICKETS_HTML_PLACEHOLDER/\$ENV{CANCELLED_TICKETS_HTML}/g;
+" "$OUTPUT_FILE"
 
 echo -e "${GREEN}✓ Dashboard generado exitosamente: $OUTPUT_FILE${NC}"
 echo ""
